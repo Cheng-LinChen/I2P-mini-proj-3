@@ -52,7 +52,7 @@ double pow(int x, double y)
 
 bool avail(point p)
 {
-    if (p.x > 0 && p.y > 0 && p.x < 14 && p.y < 14)
+    if (p.x >= 0 && p.y >= 0 && p.x <= 14 && p.y <= 14)
     {
         return 1;
     }
@@ -62,238 +62,98 @@ bool avail(point p)
 double count_struc(int x, int y, int is_player)
 {
     double ret = 0.0000000;
-    int enemy = 3 - is_player;
     point inp;
     inp.x = x;
     inp.y = y;
-    point e1;
-    point e2;
-    int consec_num;
-    double path_fill_1;
-    double path_fill_2;
-    double multiplier;
-    point b1;
-    point b2;
 
-    // dir 1
-    e1 = inp;
-    e2 = inp;
-    consec_num = 0;
-    while (avail(e2))
-    {
-        if (board[e2.x][e2.y] == is_player)
-        {
-            consec_num++;
-            e2.x++;
-        }
-        else
-        {
-            break;
-        }
-    }
-    b1 = e1;
-    b2 = e2;
-    path_fill_1 = 0;
-    path_fill_2 = 0;
-    b1.x--;
-    while (avail(b1))
-    {
-        if (board[b1.x][b1.y] == 0)
-        {
-            b1.x--;
-        }
-        else if (board[b1.x][b1.y] == is_player)
-        {
-            b1.x--;
-            path_fill_1++;
-        }
-    }
-    b2.x++;
-    while (avail(b2))
-    {
-        if (board[b2.x][b2.y] == 0)
-        {
-            b2.x++;
-        }
-        else if (board[b2.x][b2.y] == is_player)
-        {
-            b2.x++;
-            path_fill_2++;
-        }
-    }
-    if (b2.x - b1.x + 1 < 5)
-    {
-        return 0.0000000;
-    }
+    int dir_op[4][2] = {{1, 0}, {0, 1}, {1, -1}, {1, 1}};
 
-    multiplier = 1 + (((e1.x - b1.x) - (path_fill_1)) / consec_num) * (((b2.x - e2.x) - (path_fill_2)) / consec_num);
-    ret += pow(consec_num, 1000) * multiplier;
-    // dir 1
-
-    // dir 2
-    e1 = inp;
-    e2 = inp;
-    consec_num = 0;
-    while (avail(e2))
+    for (int i = 0; i < 4; i++)
     {
-        if (board[e2.x][e2.y] == is_player)
+        point e1 = inp;
+        point e2 = inp;
+        int consec_num = 0;
+        while (avail(e2))
         {
-            consec_num++;
-            e2.y++;
+            if (board[e2.x][e2.y] == is_player)
+            {
+                consec_num++;
+                e2.x += dir_op[i][0];
+                e2.y += dir_op[i][1];
+            }
+            else
+            {
+                break;
+            }
         }
-        else
-        {
-            break;
-        }
-    }
-    b1 = e1;
-    b2 = e2;
-    path_fill_1 = 0;
-    path_fill_2 = 0;
-    b1.y--;
-    while (avail(b1))
-    {
-        if (board[b1.x][b1.y] == 0)
-        {
-            b1.y--;
-        }
-        else if (board[b1.x][b1.y] == is_player)
-        {
-            b1.y--;
-            path_fill_1++;
-        }
-    }
-    b2.y++;
-    while (avail(b2))
-    {
-        if (board[b2.x][b2.y] == 0)
-        {
-            b2.y++;
-        }
-        else if (board[b2.x][b2.y] == is_player)
-        {
-            b2.y++;
-            path_fill_2++;
-        }
-    }
-    if (b2.y - b1.y + 1 < 5)
-    {
-        return 0.0000000;
-    }
+        e2.x -= dir_op[i][0];
+        e2.y -= dir_op[i][1];
 
-    multiplier = 1 + (((e1.y - b1.y) - (path_fill_1)) / consec_num) * (((b2.y - e2.y) - (path_fill_2)) / consec_num);
-    ret += pow(consec_num, 1000) * multiplier;
-    // dir 2
+        int sch_num = 5 - consec_num;
 
-    // dir 3
-    e1 = inp;
-    e2 = inp;
-    consec_num = 0;
-    while (avail(e2))
-    {
-        if (board[e2.x][e2.y] == is_player)
-        {
-            consec_num++;
-            e2.x++;
-            e2.y--;
-        }
-        else
-        {
-            break;
-        }
-    }
-    b1 = e1;
-    b2 = e2;
-    path_fill_1 = 0;
-    path_fill_2 = 0; 
-    b1.x--;
-    b1.y++;
-    while(avail(b1)){
-        if(board[b1.x][b1.y] == 0){
-            b1.x--;
-            b1.y++;
-        }
-        else if(board[b1.x][b1.y] == is_player){
-            b1.x--;
-            b1.y++;
-            path_fill_1++;
-        }
-    }
-    b2.x++;
-    b2.y--;
-    while(avail(b2)){
-        if(board[b2.x][b2.y] == 0){
-            b2.x++;
-            b2.y--;
-        }
-        else if(board[b2.x][b2.y] == is_player){
-            b2.x++;
-            b2.y--;
-            path_fill_2++;
-        }
-    }
-    if(b2.x-b1.x+1 < 5){
-        return 0.0000000;
-    }  
+        int cou = sch_num;
+        point b1 = e1;
+        point b2 = e2;
+        double path_fill_1 = 0.0000000;
+        double path_fill_2 = 0.0000000;
 
-    multiplier = 1+(((e1.x - b1.x) - (path_fill_1))/consec_num) * (((b2.x - e2.x) - (path_fill_2))/consec_num);
-    ret += pow(consec_num,1000) * multiplier;
-    //dir 3
-
-    // dir 4
-    e1 = inp;
-    e2 = inp;
-    consec_num = 0;
-    while (avail(e2))
-    {
-        if (board[e2.x][e2.y] == is_player)
+        b1.x -= dir_op[i][0];
+        b1.y -= dir_op[i][1];
+        while (avail(b1) && cou)
         {
-            consec_num++;
-            e2.x++;
-            e2.y++;
+            if (board[b1.x][b1.y] == 0)
+            {
+                b1.x -= dir_op[i][0];
+                b1.y -= dir_op[i][1];
+            }
+            else if (board[b1.x][b1.y] == is_player)
+            {
+                b1.x -= dir_op[i][0];
+                b1.y -= dir_op[i][1];
+                path_fill_1++;
+            }
+            else
+            {
+                break;
+            }
+            cou--;
         }
-        else
-        {
-            break;
-        }
-    }
-    b1 = e1;
-    b2 = e2;
-    path_fill_1 = 0;
-    path_fill_2 = 0; 
-    b1.x--;
-    b1.y--;
-    while(avail(b1)){
-        if(board[b1.x][b1.y] == 0){
-            b1.x--;
-            b1.y--;
-        }
-        else if(board[b1.x][b1.y] == is_player){
-            b1.x--;
-            b1.y--;
-            path_fill_1++;
-        }
-    }
-    b2.x++;
-    b2.y++;
-    while(avail(b2)){
-        if(board[b2.x][b2.y] == 0){
-            b2.x++;
-            b2.y++;
-        }
-        else if(board[b2.x][b2.y] == is_player){
-            b2.x++;
-            b2.y++;
-            path_fill_2++;
-        }
-    }
-    if(b2.x-b1.x+1 < 5){
-        return 0.0000000;
-    }  
+        b1.x += dir_op[i][0];
+        b1.y += dir_op[i][1];
 
-    multiplier = 1+(((e1.x - b1.x) - (path_fill_1))/consec_num) * (((b2.x - e2.x) - (path_fill_2))/consec_num);
-    ret += pow(consec_num,1000) * multiplier;
-    //dir 4
+        b2.x += dir_op[i][0];
+        b2.y += dir_op[i][1];
+        cou = sch_num;
+        while (avail(b2) && cou)
+        {
+            if (board[b2.x][b2.y] == 0)
+            {
+                b2.x += dir_op[i][0];
+                b2.y += dir_op[i][1];
+            }
+            else if (board[b2.x][b2.y] == is_player)
+            {
+                b2.x += dir_op[i][0];
+                b2.y += dir_op[i][1];
+                path_fill_2++;
+            }
+            else
+            {
+                break;
+            }
+            cou--;
+        }
+        b2.x -= dir_op[i][0];
+        b2.y -= dir_op[i][1];
+
+        if (b2.x - b1.x + 1 < 5)
+        {
+            return 0.0000000;
+        }
+
+        double multiplier = 1 + (((double)(e1.x - b1.x) + (path_fill_1)) / consec_num) * (((double)(b2.x - e2.x) - (path_fill_2)) / consec_num);
+        ret += pow(consec_num, 1000) * multiplier;
+    }
 
     return ret;
 }
@@ -301,99 +161,27 @@ double count_struc(int x, int y, int is_player)
 double count_lengh(int x, int y, int is_player)
 {
     double ret = 0.0000000;
-    int px = x;
-    int py = y;
-    while (board[px][py] != 3 - is_player)
+    int dir_op[8][2] = {{-1, -1}, {0, -1}, {1, -1}, {-1, 0}, {1, 0}, {-1, 1}, {0, 1}, {1, 1}};
+
+    for (int i = 0; i < 8; i++)
     {
-        px--;
-        ret += 1;
-        if (px < 0)
+        point p;
+        p.x = x;
+        p.y = y;
+
+        while (board[p.x][p.y] != 3 - is_player)
         {
-            break;
+            p.x += dir_op[i][0];
+            p.y += dir_op[i][1];
+            ret += 1;
+            if (!avail(p))
+            {
+                break;
+            }
         }
-    }
-    int px = x;
-    int py = y;
-    while (board[px][py] != 3 - is_player)
-    {
-        px++;
-        ret += 1;
-        if (px > 14)
-        {
-            break;
-        }
-    }
-    int px = x;
-    int py = y;
-    while (board[px][py] != 3 - is_player)
-    {
-        py--;
-        ret += 1;
-        if (py < 0)
-        {
-            break;
-        }
-    }
-    int px = x;
-    int py = y;
-    while (board[px][py] != 3 - is_player)
-    {
-        py++;
-        ret += 1;
-        if (py > 14)
-        {
-            break;
-        }
+        ret -= 1;
     }
 
-    int px = x;
-    int py = y;
-    while (board[px][py] != 3 - is_player)
-    {
-        px--;
-        py--;
-        ret += 1;
-        if (px < 0 || py < 0)
-        {
-            break;
-        }
-    }
-    int px = x;
-    int py = y;
-    while (board[px][py] != 3 - is_player)
-    {
-        px--;
-        py++;
-        ret += 1;
-        if (px < 0 || py > 14)
-        {
-            break;
-        }
-    }
-    int px = x;
-    int py = y;
-    while (board[px][py] != 3 - is_player)
-    {
-        px++;
-        py--;
-        ret += 1;
-        if (px > 14 || py < 0)
-        {
-            break;
-        }
-    }
-    int px = x;
-    int py = y;
-    while (board[px][py] != 3 - is_player)
-    {
-        px++;
-        py++;
-        ret += 1;
-        if (px > 14 || py > 14)
-        {
-            break;
-        }
-    }
     return ret;
 }
 
@@ -421,14 +209,15 @@ double gen_val(int is_player)
 
 node *gen_tree(int depth, int x, int y, double a, double b, int is_player)
 {
-    if (is_player && a >= b)
+    if (is_player == 1 && a >= b)
     {
         return nullptr;
     }
-    if (!is_player && a <= b)
+    if (is_player == 2 && a <= b)
     {
         return nullptr;
     }
+
     node _new;
     _new.putting_loca.x = x;
     _new.putting_loca.y = y;
@@ -436,96 +225,91 @@ node *gen_tree(int depth, int x, int y, double a, double b, int is_player)
     _new.beta = b;
     if (depth == 0)
     {
-        if (is_player)
+        if (is_player == 1)
         {
-            //_new.alpha = gen_val(is_player);
+            _new.alpha = gen_val(is_player);
         }
-        if (!is_player && a <= b)
+        if (is_player == 2)
         {
-            //_new.beta = gen_val(is_player)
+            _new.beta = gen_val(is_player);
         }
         node *ret = &_new;
         return ret;
     }
 
-    if (is_player)
+    if (is_player == 1)
+    {
+        _new.alpha = neg_inf;
+        _new.beta = b;
+    }
+    else if (is_player == 2)
+    {
+        _new.alpha = a;
+        _new.beta = pos_inf;
+    }
+    else if (is_player == 0)
     {
         _new.alpha = neg_inf;
         _new.beta = pos_inf;
     }
-    else
+
+    vector<point> choi;
+    int po[8][2] = {{-1, -1}, {0, -1}, {1, -1}, {-1, 0}, {1, 0}, {-1, 1}, {0, 1}, {1, 1}};
+    int px, py;
+    for (int i = 0; i < 15; i++)
     {
-        _new.alpha = pos_inf;
-        _new.beta = neg_inf;
+        for (int j = 0; j < 15; j++)
+        {
+            int flag = 0;
+            for (int k = 0; k < 8; k++)
+            {
+                if (flag)
+                {
+                    continue;
+                }
+                px = i + po[k][0];
+                py = j + po[k][1];
+                if (px >= 0 && px <= 14 && py >= 0 && py <= 14)
+                {
+                    if (board[px][py] != 0)
+                    {
+                        choi.push_back({i, j});
+                        flag = 1;
+                    }
+                }
+            }
+        }
+    }
+    for (auto it : choi)
+    {
+        if (is_player != 2)
+        {
+            node *child_ptr = gen_tree(depth - 1, it.x, it.y, _new.alpha, _new.beta, 2);
+            if (_new.alpha < child_ptr->beta)
+            {
+                _new.alpha = child_ptr->beta;
+                if (_new.alpha >= _new.beta)
+                {
+                    break;
+                }
+            }
+            _new.child.push_back(child_ptr);
+        }
+        else
+        {
+            node *child_ptr = gen_tree(depth - 1, it.x, it.y, _new.alpha, _new.beta, 1);
+            if (_new.beta < child_ptr->alpha)
+            {
+                _new.beta = child_ptr->alpha;
+                if (_new.beta >= _new.alpha)
+                {
+                    break;
+                }
+            }
+            _new.child.push_back(child_ptr);
+        }
     }
 
-    if (depth == 0)
-    {
-        //
-    }
-    else
-    {
-        vector<point> choi;
-        if (x == -1 && y == -1)
-        {
-            // evap
-        }
-        int po[8][2] = {{-1, -1}, {0, -1}, {1, -1}, {-1, 0}, {1, 0}, {-1, 1}, {0, 1}, {1, 1}};
-        int px, py;
-        for (int i = 0; i < 15; i++)
-        {
-            for (int j = 0; j < 15; j++)
-            {
-                int flag = 0;
-                for (int k = 0; k < 8; k++)
-                {
-                    if (flag)
-                    {
-                        continue;
-                    }
-                    px = i + po[k][0];
-                    py = j + po[k][1];
-                    if (px >= 0 && px <= 14 && py >= 0 && py <= 14)
-                    {
-                        if (board[px][py] != 0)
-                        {
-                            choi.push_back({i, j});
-                            flag = 1;
-                        }
-                    }
-                }
-            }
-        }
-        for (auto it : choi)
-        {
-            if (is_player)
-            {
-                node *child_ptr = gen_tree(depth - 1, it.x, it.y, _new.alpha, _new.beta, 0);
-                if (_new.alpha < child_ptr->beta)
-                {
-                    _new.alpha = child_ptr->beta;
-                    if (_new.alpha >= _new.beta)
-                    {
-                        break;
-                    }
-                }
-                _new.child.push_back(child_ptr);
-            }
-            else
-            {
-                node *child_ptr = gen_tree(depth - 1, it.x, it.y, _new.alpha, _new.beta, 1);
-                if (_new.beta < child_ptr->alpha)
-                {
-                    _new.beta = child_ptr->alpha;
-                    if (_new.beta >= _new.alpha)
-                    {
-                        break;
-                    }
-                }
-                _new.child.push_back(child_ptr);
-            }
-        }
-    }
     node *ret = &_new;
     return ret;
 }
