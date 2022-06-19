@@ -13,6 +13,11 @@
 using namespace std;
 
 long long int node_num = 0;
+int ones = 0;
+int twos = 0;
+int first_hand;
+char my_symbol;
+char enemy_symbol;
 
 enum SPOT_STATE
 {
@@ -32,7 +37,7 @@ public:
     point putting_loca;
     double alpha;
     double beta;
-    int is_player;
+    char symbol;
     double val;
     vector<node *> child;
 } Node;
@@ -42,9 +47,10 @@ queue<point> pri;
 int player;
 const int SIZE = 15;
 std::array<std::array<int, SIZE>, SIZE> board;
+std::array<std::array<char, SIZE>, SIZE> oxboard;
 
 double max_beta = neg_inf;
-int dep = 3;
+int dep = 4;
 
 node *root;
 
@@ -67,7 +73,19 @@ bool avail(point p)
     return 0;
 }
 
-double count_struc(int x, int y, int pl_or_opp)
+int dist(point p1, point p2)
+{
+    if (p1.x == p2.x)
+    {
+        return p2.y - p1.y;
+    }
+    else
+    {
+        return p2.x - p1.x;
+    }
+}
+
+double count_struc(int x, int y, char str_sym)
 {
     double ret = 0.0000000;
     point inp;
@@ -80,10 +98,20 @@ double count_struc(int x, int y, int pl_or_opp)
     {
         point e1 = inp;
         point e2 = inp;
+        e2.x -= dir_op[i][0];
+        e2.y -= dir_op[i][1];
+        if (avail(e2))
+        {
+            if (oxboard[e2.x][e2.y] == str_sym)
+            {
+                continue;
+            }
+        }
+        e2 = e1;
         int consec_num = 0;
         while (avail(e2))
         {
-            if (board[e2.y][e2.x] == pl_or_opp)
+            if (oxboard[e2.x][e2.y] == str_sym)
             {
                 consec_num++;
                 e2.x += dir_op[i][0];
@@ -96,14 +124,15 @@ double count_struc(int x, int y, int pl_or_opp)
         }
         e2.x -= dir_op[i][0];
         e2.y -= dir_op[i][1];
-        if (e2.x == e1.x && e2.y == e1.y)
+        if (consec_num == 1)
         {
-            return 0.0000000;
+            continue;
         }
 
-        int sch_num = 5 - consec_num;
+        double sch_num = 5 - consec_num;
+        
 
-        int cou = sch_num;
+        double cou = sch_num;
         point b1 = e1;
         point b2 = e2;
         double path_fill_1 = 0.0000000;
@@ -113,12 +142,12 @@ double count_struc(int x, int y, int pl_or_opp)
         b1.y -= dir_op[i][1];
         while (avail(b1) && cou)
         {
-            if (board[b1.y][b1.x] == 0)
+            if (oxboard[b1.x][b1.y] == '-')
             {
                 b1.x -= dir_op[i][0];
                 b1.y -= dir_op[i][1];
             }
-            else if (board[b1.y][b1.x] == pl_or_opp)
+            else if (oxboard[b1.x][b1.y] == str_sym)
             {
                 b1.x -= dir_op[i][0];
                 b1.y -= dir_op[i][1];
@@ -138,12 +167,12 @@ double count_struc(int x, int y, int pl_or_opp)
         cou = sch_num;
         while (avail(b2) && cou)
         {
-            if (board[b2.y][b2.x] == 0)
+            if (oxboard[b2.x][b2.y] == '-')
             {
                 b2.x += dir_op[i][0];
                 b2.y += dir_op[i][1];
             }
-            else if (board[b2.y][b2.x] == pl_or_opp)
+            else if (oxboard[b2.x][b2.y] == str_sym)
             {
                 b2.x += dir_op[i][0];
                 b2.y += dir_op[i][1];
@@ -158,19 +187,20 @@ double count_struc(int x, int y, int pl_or_opp)
         b2.x -= dir_op[i][0];
         b2.y -= dir_op[i][1];
 
-        if (b2.x - b1.x + 1 < 5)
+        if (dist(b1, b2) + 1 < 5)
         {
-            return 0.0000000;
+            continue;
         }
-
-        double multiplier = 1 + (((1) + 3 * (double)(e1.x - b1.x) + (path_fill_1)) / (2 * sch_num)) * (((1) + 3 * (double)(b2.x - e2.x) + (path_fill_2)) / (2 * sch_num));
-        ret += pow(consec_num, 1000) * multiplier;
+        double multiplier = 1.0000000;
+        //double multiplier = ((double)(dist(b1, e1) + dist(e2, b2) + dist(b1, e1) * dist(e2, b2))) + (2.0000000) * ((double)(path_fill_1 +path_fill_2 +path_fill_1 * path_fill_2)); 
+        //double multiplier = 1.0000000 + (0.3000000)*((double)(dist(b1, e1) + dist(e2, b2) + dist(b1, e1) * dist(e2, b2))) + (0.1000000) * ((double)(path_fill_1 +path_fill_2 +path_fill_1 * path_fill_2)); 
+                                       
+        ret += (double)pow(consec_num - 1, 1000.00000000) * multiplier;
     }
-
     return ret;
 }
 
-double count_lengh(int x, int y, int pl_or_opp)
+double count_lengh(int x, int y, char str_sym)
 {
     double ret = 0.0000000;
     int dir_op[8][2] = {{-1, -1}, {0, -1}, {1, -1}, {-1, 0}, {1, 0}, {-1, 1}, {0, 1}, {1, 1}};
@@ -181,7 +211,7 @@ double count_lengh(int x, int y, int pl_or_opp)
         p.x = x;
         p.y = y;
 
-        while (board[p.y][p.x] != 3 - pl_or_opp)
+        while (((oxboard[p.x][p.y] == str_sym) || (oxboard[p.x][p.y] == '-')))
         {
             p.x += dir_op[i][0];
             p.y += dir_op[i][1];
@@ -193,33 +223,32 @@ double count_lengh(int x, int y, int pl_or_opp)
         }
         ret -= 1;
     }
-
     return ret;
 }
 
 double gen_val()
 {
     double ret = 0.00000000;
-    for (int j = 0; j <= 14; j++)
+    for (int i = 0; i < 15; i++)
     {
-        for (int i = 0; i <= 14; i++)
+        for (int j = 0; j < 15; j++)
         {
-            if (board[j][i] == 1)
+            if (oxboard[i][j] == my_symbol)
             {
-                ret += count_lengh(i, j, 1);
-                ret += count_struc(i, j, 1);
+                ret += count_lengh(i, j, my_symbol);
+                ret += count_struc(i, j, my_symbol);
             }
-            else if (board[j][i] == 2)
+            else if (oxboard[i][j] == enemy_symbol)
             {
-                ret -= 5 * count_lengh(i, j, 2);
-                ret -= 5 * count_struc(i, j, 2);
+                ret -= 5.0000000 * count_lengh(i, j, enemy_symbol);
+                ret -= 5.0000000 * count_struc(i, j, enemy_symbol);
             }
         }
     }
     return ret;
 }
 
-node *gen_tree(int depth, int x, int y, double a, double b, int is_player)
+node *gen_tree(int depth, int x, int y, double a, double b, char node_sym)
 {
     node_num++;
     node _new;
@@ -229,11 +258,11 @@ node *gen_tree(int depth, int x, int y, double a, double b, int is_player)
     _new.beta = b;
     if (depth == 0)
     {
-        if (is_player == 1)
+        if (node_sym == my_symbol)
         {
             _new.alpha = gen_val();
         }
-        if (is_player == 2)
+        if (node_sym == enemy_symbol)
         {
             _new.beta = gen_val();
         }
@@ -245,21 +274,20 @@ node *gen_tree(int depth, int x, int y, double a, double b, int is_player)
                 max_beta = _new.beta;
             }
         }
-
         node *ret = &_new;
         return ret;
     }
-    if (is_player == 1)
+    if (node_sym == my_symbol)
     {
         _new.alpha = neg_inf;
         _new.beta = b;
     }
-    else if (is_player == 2)
+    else if (node_sym == enemy_symbol)
     {
         _new.alpha = a;
         _new.beta = pos_inf;
     }
-    else if (is_player == 0)
+    else if (node_sym == '+')
     {
         _new.alpha = neg_inf;
         _new.beta = pos_inf;
@@ -267,22 +295,21 @@ node *gen_tree(int depth, int x, int y, double a, double b, int is_player)
     vector<point> choi;
     int po[8][2] = {{-1, -1}, {0, -1}, {1, -1}, {-1, 0}, {1, 0}, {-1, 1}, {0, 1}, {1, 1}};
     int px, py;
-    for (int j = 0; j < 15; j++)
+    for (int i = 0; i < 15; i++)
     {
-        for (int i = 0; i < 15; i++)
+        for (int j = 0; j < 15; j++)
         {
-            if (board[j][i] != 0)
+            if (oxboard[i][j] != '-')
             {
                 continue;
             }
-            int flag = 0;
             for (int k = 0; k < 8; k++)
             {
                 px = i + po[k][0];
                 py = j + po[k][1];
                 if (px >= 0 && px <= 14 && py >= 0 && py <= 14)
                 {
-                    if (board[py][px] != 0)
+                    if (oxboard[px][py] != '-')
                     {
                         choi.push_back({i, j});
                         break;
@@ -299,11 +326,11 @@ node *gen_tree(int depth, int x, int y, double a, double b, int is_player)
 
     for (auto it : choi)
     {
-        if (is_player != 2)
+        if (!(node_sym == enemy_symbol))
         {
-            board[it.y][it.x] = 1;
-            node *child_ptr = gen_tree(depth - 1, it.x, it.y, _new.alpha, _new.beta, 2);
-            board[it.y][it.x] = 0;
+            oxboard[it.x][it.y] = my_symbol;
+            node *child_ptr = gen_tree(depth - 1, it.x, it.y, _new.alpha, _new.beta, enemy_symbol);
+            oxboard[it.x][it.y] = '-';
             if (_new.alpha < child_ptr->beta)
             {
                 _new.alpha = child_ptr->beta;
@@ -316,13 +343,13 @@ node *gen_tree(int depth, int x, int y, double a, double b, int is_player)
         }
         else
         {
-            board[it.y][it.x] = 2;
-            node *child_ptr = gen_tree(depth - 1, it.x, it.y, _new.alpha, _new.beta, 1);
-            board[it.y][it.x] = 0;
+            oxboard[it.x][it.y] = enemy_symbol;
+            node *child_ptr = gen_tree(depth - 1, it.x, it.y, _new.alpha, _new.beta, my_symbol);
+            oxboard[it.x][it.y] = '-';
             if (_new.beta > child_ptr->alpha)
             {
                 _new.beta = child_ptr->alpha;
-                if (_new.beta >= _new.alpha)
+                if (_new.beta <= _new.alpha)
                 {
                     break;
                 }
@@ -338,7 +365,6 @@ node *gen_tree(int depth, int x, int y, double a, double b, int is_player)
             max_beta = _new.beta;
         }
     }
-
     node *ret = &_new;
     return ret;
 }
@@ -351,9 +377,58 @@ void read_board(std::ifstream &fin)
         for (int j = 0; j < SIZE; j++)
         {
             fin >> board[i][j];
+            if (board[i][j] == 1)
+            {
+                ones++;
+            }
+            else if (board[i][j] == 2)
+            {
+                twos++;
+            }
+        }
+    }
+    if (twos == ones)
+    {
+        first_hand = 1;
+        my_symbol = 'o';
+        enemy_symbol = 'x';
+    }
+    else
+    {
+        first_hand = 0;
+        my_symbol = 'x';
+        enemy_symbol = 'o';
+    }
+    for (int i = 0; i < SIZE; i++)
+    {
+        for (int j = 0; j < SIZE; j++)
+        {
+            if (board[i][j] == 0)
+            {
+                oxboard[i][j] = '-';
+            }
+            else if (board[i][j] == 1)
+            {
+                oxboard[i][j] = 'o';
+            }
+            else if (board[i][j] == 2)
+            {
+                oxboard[i][j] = 'x';
+            }
         }
     }
 }
+void write_valid_spot()
+{
+    while (!pri.empty())
+    {
+        auto it = pri.front();
+        pri.pop();
+
+    }
+}
+
+
 
 void write_valid_spot(std::ofstream &fout)
 {
