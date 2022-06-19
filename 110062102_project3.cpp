@@ -50,7 +50,7 @@ std::array<std::array<int, SIZE>, SIZE> board;
 std::array<std::array<char, SIZE>, SIZE> oxboard;
 
 double max_beta = neg_inf;
-int dep = 4;
+int dep = 3;
 
 node *root;
 
@@ -130,7 +130,6 @@ double count_struc(int x, int y, char str_sym)
         }
 
         double sch_num = 5 - consec_num;
-        
 
         double cou = sch_num;
         point b1 = e1;
@@ -191,10 +190,10 @@ double count_struc(int x, int y, char str_sym)
         {
             continue;
         }
-        double multiplier = 1.0000000;
-        //double multiplier = ((double)(dist(b1, e1) + dist(e2, b2) + dist(b1, e1) * dist(e2, b2))) + (2.0000000) * ((double)(path_fill_1 +path_fill_2 +path_fill_1 * path_fill_2)); 
-        //double multiplier = 1.0000000 + (0.3000000)*((double)(dist(b1, e1) + dist(e2, b2) + dist(b1, e1) * dist(e2, b2))) + (0.1000000) * ((double)(path_fill_1 +path_fill_2 +path_fill_1 * path_fill_2)); 
-                                       
+        //double multiplier = 1.0000000;
+        // double multiplier = ((double)(dist(b1, e1) + dist(e2, b2) + dist(b1, e1) * dist(e2, b2))) + (2.0000000) * ((double)(path_fill_1 +path_fill_2 +path_fill_1 * path_fill_2));
+         double multiplier = 1.0000000 + (0.3000000)*((double)(dist(b1, e1) + dist(e2, b2) + dist(b1, e1) * dist(e2, b2))) + (0.1000000) * ((double)(path_fill_1 +path_fill_2 +path_fill_1 * path_fill_2));
+
         ret += (double)pow(consec_num - 1, 1000.00000000) * multiplier;
     }
     return ret;
@@ -418,26 +417,17 @@ void read_board(std::ifstream &fin)
         }
     }
 }
-void write_valid_spot()
-{
-    while (!pri.empty())
-    {
-        auto it = pri.front();
-        pri.pop();
-
-    }
-}
-
-
 
 void write_valid_spot(std::ofstream &fout)
 {
-    while (!pri.empty())
-    {
-        auto it = pri.front();
-        pri.pop();
-        fout << it.x << " " << it.y << std::endl;
-    }
+    root = gen_tree(dep, 0, 0, neg_inf, pos_inf, '+');
+    auto it = pri.back();
+
+    
+
+    fout << it.x << " " << it.y << std::endl;
+    fout.flush();
+    
 
     /*
     srand(time(NULL));
@@ -461,7 +451,6 @@ int main(int, char **argv)
     std::ifstream fin(argv[1]);
     std::ofstream fout(argv[2]);
     read_board(fin);
-    root = gen_tree(5, -1, -1, neg_inf, pos_inf, 0);
     write_valid_spot(fout);
     fin.close();
     fout.close();
