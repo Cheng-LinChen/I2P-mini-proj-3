@@ -50,9 +50,15 @@ std::array<std::array<int, SIZE>, SIZE> board;
 std::array<std::array<char, SIZE>, SIZE> oxboard;
 
 double max_beta = neg_inf;
-int dep = 3;
+int dep;
 
 node *root;
+
+int expon_2[3][3][3][3];
+int facto_2[3][3][3][3];
+
+int expon[5][4][4][3][3];
+int facto[5][4][4][3][3];
 
 double pow(int x, double y)
 {
@@ -190,37 +196,171 @@ double count_struc(int x, int y, char str_sym)
         {
             continue;
         }
-        //double multiplier = 1.0000000;
-        // double multiplier = ((double)(dist(b1, e1) + dist(e2, b2) + dist(b1, e1) * dist(e2, b2))) + (2.0000000) * ((double)(path_fill_1 +path_fill_2 +path_fill_1 * path_fill_2));
-         double multiplier = 1.0000000 + (0.3000000)*((double)(dist(b1, e1) + dist(e2, b2) + dist(b1, e1) * dist(e2, b2))) + (0.1000000) * ((double)(path_fill_1 +path_fill_2 +path_fill_1 * path_fill_2));
 
-        ret += (double)pow(consec_num - 1, 1000.00000000) * multiplier;
-    }
-    return ret;
-}
-
-double count_lengh(int x, int y, char str_sym)
-{
-    double ret = 0.0000000;
-    int dir_op[8][2] = {{-1, -1}, {0, -1}, {1, -1}, {-1, 0}, {1, 0}, {-1, 1}, {0, 1}, {1, 1}};
-
-    for (int i = 0; i < 8; i++)
-    {
-        point p;
-        p.x = x;
-        p.y = y;
-
-        while (((oxboard[p.x][p.y] == str_sym) || (oxboard[p.x][p.y] == '-')))
+        int dist1 = dist(b1, e1);
+        int dist2 = dist(e2, b2);
+        int ex_num, fac_num;
+        if (consec_num >= 5)
         {
-            p.x += dir_op[i][0];
-            p.y += dir_op[i][1];
-            ret += 1;
-            if (!avail(p))
+            ex_num = 4;
+            fac_num = 30;
+        }
+        else if (consec_num == 2)
+        {
+            int a, b, c, d;
+            if (dist1 == 0 || dist1 == 1)
             {
-                break;
+                a = 2;
+                b = 2;
+            }
+            else if (dist1 == 2)
+            {
+                if (oxboard[b1.x][b1.y] == str_sym)
+                {
+                    a = 2;
+                    b = 1;
+                }
+                else
+                {
+                    a = 2;
+                    b = 0;
+                }
+            }
+            else if (dist1 == 3)
+            {
+                b1.x += dir_op[i][0];
+                b1.y += dir_op[i][1];
+                if (oxboard[b1.x][b1.y] == str_sym)
+                {
+                    a = 1;
+                }
+                else
+                {
+                    a = 0;
+                }
+                b1.x += dir_op[i][0];
+                b1.y += dir_op[i][1];
+                if (oxboard[b1.x][b1.y] == str_sym)
+                {
+                    b = 1;
+                }
+                else
+                {
+                    b = 0;
+                }
+                b1.x -= dir_op[i][0];
+                b1.y -= dir_op[i][1];
+                b1.x -= dir_op[i][0];
+                b1.y -= dir_op[i][1];
+            }
+
+            if (dist2 == 0 || dist2 == 1)
+            {
+                c = 2;
+                d = 2;
+            }
+            else if (dist2 == 2)
+            {
+                d = 0;
+                if (oxboard[b2.x][b2.y] == str_sym)
+                {
+                    c = 2;
+                    d = 1;
+                }
+                else
+                {
+                    c = 2;
+                    d = 0;
+                }
+            }
+            else if (dist2 == 3)
+            {
+                b2.x -= dir_op[i][0];
+                b2.y -= dir_op[i][1];
+                if (oxboard[b2.x][b2.y] == str_sym)
+                {
+                    c = 1;
+                }
+                else
+                {
+                    c = 0;
+                }
+                b2.x -= dir_op[i][0];
+                b2.y -= dir_op[i][1];
+                if (oxboard[b2.x][b2.y] == str_sym)
+                {
+                    d = 1;
+                }
+                else
+                {
+                    d = 0;
+                }
+                b2.x += dir_op[i][0];
+                b2.y += dir_op[i][1];
+                b2.x += dir_op[i][0];
+                b2.y += dir_op[i][1];
+            }
+            if (dist1 == 0)
+            {
+                if (c == 0 && d == 0)
+                {
+                    ex_num = 1;
+                    fac_num = 3;
+                }
+                else if (c == 0 && d == 1)
+                {
+                    ex_num = 2;
+                    fac_num = 4;
+                }
+                else if (c == 1 && d == 0)
+                {
+                    ex_num = 2;
+                    fac_num = 4;
+                }
+                else if (c == 1 && d == 1)
+                {
+                    ex_num = 3;
+                    fac_num = 5;
+                }
+            }
+            else if (dist2 == 0)
+            {
+                if (a == 0 && b == 0)
+                {
+                    ex_num = 1;
+                    fac_num = 3;
+                }
+                else if (a == 0 && b == 1)
+                {
+                    ex_num = 2;
+                    fac_num = 4;
+                }
+                else if (a == 1 && b == 0)
+                {
+                    ex_num = 2;
+                    fac_num = 4;
+                }
+                else if (a == 1 && b == 1)
+                {
+                    ex_num = 3;
+                    fac_num = 5;
+                }
+            }
+            else
+            {
+                ex_num = expon_2[a][b][c][d];
+                fac_num = facto_2[a][b][c][d];
+                fac_num *= 1.5000000;
             }
         }
-        ret -= 1;
+        else
+        {
+            ex_num = expon[consec_num][dist1][dist2][(int)path_fill_1][(int)path_fill_2];
+            fac_num = facto[consec_num][dist1][dist2][(int)path_fill_1][(int)path_fill_2];
+        }
+
+        double multiplier = 1.0000000 + ((double)fac_num) / 100.000;
+        ret += (double)pow(ex_num, 1000.00000000) * multiplier;
     }
     return ret;
 }
@@ -234,12 +374,10 @@ double gen_val()
         {
             if (oxboard[i][j] == my_symbol)
             {
-                ret += count_lengh(i, j, my_symbol);
                 ret += count_struc(i, j, my_symbol);
             }
             else if (oxboard[i][j] == enemy_symbol)
             {
-                ret -= 5.0000000 * count_lengh(i, j, enemy_symbol);
                 ret -= 5.0000000 * count_struc(i, j, enemy_symbol);
             }
         }
@@ -367,6 +505,215 @@ node *gen_tree(int depth, int x, int y, double a, double b, char node_sym)
     node *ret = &_new;
     return ret;
 }
+void set_expfac()
+{
+    expon_2[0][0][0][0] = 1;
+    expon_2[0][0][0][1] = 2;
+    expon_2[0][0][0][2] = 1;
+    expon_2[0][0][1][0] = 3;
+    expon_2[0][0][1][1] = 3;
+    expon_2[0][0][1][2] = 2;
+    expon_2[0][0][2][0] = 1;
+    expon_2[0][0][2][1] = 1;
+    expon_2[0][0][2][2] = 1;
+    expon_2[0][1][0][0] = 3;
+    expon_2[0][1][0][1] = 3;
+    expon_2[0][1][0][2] = 3;
+    expon_2[0][1][1][0] = 3;
+    expon_2[0][1][1][1] = 3;
+    expon_2[0][1][1][2] = 3;
+    expon_2[0][1][2][0] = 3;
+    expon_2[0][1][2][1] = 3;
+    expon_2[0][1][2][2] = 3;
+    expon_2[0][2][0][0] = 1;
+    expon_2[0][2][0][1] = 1;
+    expon_2[0][2][0][2] = 1;
+    expon_2[0][2][1][0] = 3;
+    expon_2[0][2][1][1] = 3;
+    expon_2[0][2][1][2] = 2;
+    expon_2[0][2][2][0] = -1;
+    expon_2[0][2][2][1] = -1;
+    expon_2[0][2][2][2] = -1;
+    expon_2[1][0][0][0] = 2;
+    expon_2[1][0][0][1] = 2;
+    expon_2[1][0][0][2] = 2;
+    expon_2[1][0][1][0] = 3;
+    expon_2[1][0][1][1] = 3;
+    expon_2[1][0][1][2] = 2;
+    expon_2[1][0][2][0] = 1;
+    expon_2[1][0][2][1] = 1;
+    expon_2[1][0][2][2] = 1;
+    expon_2[1][1][0][0] = 3;
+    expon_2[1][1][0][1] = 3;
+    expon_2[1][1][0][2] = 3;
+    expon_2[1][1][1][0] = 3;
+    expon_2[1][1][1][1] = 3;
+    expon_2[1][1][1][2] = 3;
+    expon_2[1][1][2][0] = 3;
+    expon_2[1][1][2][1] = 3;
+    expon_2[1][1][2][2] = 3;
+    expon_2[1][2][0][0] = 1;
+    expon_2[1][2][0][1] = 1;
+    expon_2[1][2][0][2] = 1;
+    expon_2[1][2][1][0] = 3;
+    expon_2[1][2][1][1] = 3;
+    expon_2[1][2][1][2] = 2;
+    expon_2[1][2][2][0] = -1;
+    expon_2[1][2][2][1] = -1;
+    expon_2[1][2][2][2] = -1;
+    expon_2[2][0][0][0] = 1;
+    expon_2[2][0][0][1] = 1;
+    expon_2[2][0][0][2] = 1;
+    expon_2[2][0][1][0] = 3;
+    expon_2[2][0][1][1] = 3;
+    expon_2[2][0][1][2] = 2;
+    expon_2[2][0][2][0] = 1;
+    expon_2[2][0][2][1] = 1;
+    expon_2[2][0][2][2] = 1;
+    expon_2[2][1][0][0] = 2;
+    expon_2[2][1][0][1] = 2;
+    expon_2[2][1][0][2] = 2;
+    expon_2[2][1][1][0] = 3;
+    expon_2[2][1][1][1] = 3;
+    expon_2[2][1][1][2] = 2;
+    expon_2[2][1][2][0] = 2;
+    expon_2[2][1][2][1] = 2;
+    expon_2[2][1][2][2] = 2;
+    expon_2[2][2][0][0] = 1;
+    expon_2[2][2][0][1] = 2;
+    expon_2[2][2][0][2] = 1;
+    expon_2[2][2][1][0] = 3;
+    expon_2[2][2][1][1] = 3;
+    expon_2[2][2][1][2] = 2;
+    expon_2[2][2][2][0] = -1;
+    expon_2[2][2][2][1] = -1;
+    expon_2[2][2][2][2] = -1;
+
+    expon[3][0][2][0][0] = 2;
+    expon[3][0][2][0][1] = 3;
+    expon[3][2][0][0][0] = 2;
+    expon[3][2][0][1][0] = 3;
+
+    expon[3][1][1][0][0] = 2;
+
+    expon[3][1][2][0][0] = 3;
+    expon[3][1][2][0][1] = 3;
+    expon[3][2][1][0][0] = 3;
+    expon[3][2][1][1][0] = 3;
+
+    expon[3][2][2][0][0] = 3;
+    expon[3][2][2][0][1] = 3;
+    expon[3][2][2][1][0] = 3;
+    expon[3][2][2][1][1] = 4;
+
+    expon[4][0][1][0][0] = 3;
+    expon[4][1][0][0][0] = 3;
+    expon[4][1][1][0][0] = 4;
+
+    ////////////////////////
+    facto_2[0][0][0][0] = 5;
+    facto_2[0][0][0][1] = 5;
+    facto_2[0][0][0][2] = 4;
+    facto_2[0][0][1][0] = 5;
+    facto_2[0][0][1][1] = 6;
+    facto_2[0][0][1][2] = 4;
+    facto_2[0][0][2][0] = 3;
+    facto_2[0][0][2][1] = 3;
+    facto_2[0][0][2][2] = 3;
+    facto_2[0][1][0][0] = 5;
+    facto_2[0][1][0][1] = 6;
+    facto_2[0][1][0][2] = 4;
+    facto_2[0][1][1][0] = 7;
+    facto_2[0][1][1][1] = 8;
+    facto_2[0][1][1][2] = 6;
+    facto_2[0][1][2][0] = 3;
+    facto_2[0][1][2][1] = 3;
+    facto_2[0][1][2][2] = 3;
+    facto_2[0][2][0][0] = 3;
+    facto_2[0][2][0][1] = 4;
+    facto_2[0][2][0][2] = 2;
+    facto_2[0][2][1][0] = 3;
+    facto_2[0][2][1][1] = 4;
+    facto_2[0][2][1][2] = 2;
+    facto_2[0][2][2][0] = -1;
+    facto_2[0][2][2][1] = -1;
+    facto_2[0][2][2][2] = -1;
+    facto_2[1][0][0][0] = 5;
+    facto_2[1][0][0][1] = 6;
+    facto_2[1][0][0][2] = 5;
+    facto_2[1][0][1][0] = 6;
+    facto_2[1][0][1][1] = 7;
+    facto_2[1][0][1][2] = 5;
+    facto_2[1][0][2][0] = 4;
+    facto_2[1][0][2][1] = 4;
+    facto_2[1][0][2][2] = 4;
+    facto_2[1][1][0][0] = 6;
+    facto_2[1][1][0][1] = 7;
+    facto_2[1][1][0][2] = 5;
+    facto_2[1][1][1][0] = 8;
+    facto_2[1][1][1][1] = 9;
+    facto_2[1][1][1][2] = 7;
+    facto_2[1][1][2][0] = 4;
+    facto_2[1][1][2][1] = 4;
+    facto_2[1][1][2][2] = 4;
+    facto_2[1][2][0][0] = 3;
+    facto_2[1][2][0][1] = 4;
+    facto_2[1][2][0][2] = 2;
+    facto_2[1][2][1][0] = 4;
+    facto_2[1][2][1][1] = 4;
+    facto_2[1][2][1][2] = 3;
+    facto_2[1][2][2][0] = -1;
+    facto_2[1][2][2][1] = -1;
+    facto_2[1][2][2][2] = -1;
+    facto_2[2][0][0][0] = 4;
+    facto_2[2][0][0][1] = 5;
+    facto_2[2][0][0][2] = 3;
+    facto_2[2][0][1][0] = 4;
+    facto_2[2][0][1][1] = 5;
+    facto_2[2][0][1][2] = 5;
+    facto_2[2][0][2][0] = 2;
+    facto_2[2][0][2][1] = 2;
+    facto_2[2][0][2][2] = 2;
+    facto_2[2][1][0][0] = 5;
+    facto_2[2][1][0][1] = 6;
+    facto_2[2][1][0][2] = 4;
+    facto_2[2][1][1][0] = 6;
+    facto_2[2][1][1][1] = 7;
+    facto_2[2][1][1][2] = 6;
+    facto_2[2][1][2][0] = 4;
+    facto_2[2][1][2][1] = 4;
+    facto_2[2][1][2][2] = 4;
+    facto_2[2][2][0][0] = 3;
+    facto_2[2][2][0][1] = 4;
+    facto_2[2][2][0][2] = 3;
+    facto_2[2][2][1][0] = 5;
+    facto_2[2][2][1][1] = 6;
+    facto_2[2][2][1][2] = 4;
+    facto_2[2][2][2][0] = -1;
+    facto_2[2][2][2][1] = -1;
+    facto_2[2][2][2][2] = -1;
+
+    facto[3][0][2][0][0] = 5;
+    facto[3][0][2][0][1] = 6;
+    facto[3][2][0][0][0] = 6;
+    facto[3][2][0][1][0] = 6;
+
+    facto[3][1][1][0][0] = 4;
+
+    facto[3][1][2][0][0] = 5;
+    facto[3][1][2][0][1] = 6;
+    facto[3][2][1][0][0] = 5;
+    facto[3][2][1][1][0] = 6;
+
+    facto[3][2][2][0][0] = 7;
+    facto[3][2][2][0][1] = 8;
+    facto[3][2][2][1][0] = 8;
+    facto[3][2][2][1][1] = 9;
+
+    facto[4][0][1][0][0] = 1;
+    facto[4][1][0][0][0] = 1;
+    facto[4][1][1][0][0] = 5;
+}
 
 void read_board(std::ifstream &fin)
 {
@@ -420,14 +767,28 @@ void read_board(std::ifstream &fin)
 
 void write_valid_spot(std::ofstream &fout)
 {
+    if (ones + twos > 34)
+    {
+        dep = 3;
+    }
+    else if (ones + twos > 16)
+    {
+        dep = 3;
+    }
+    else if (ones + twos > 4)
+    {
+        dep = 4;
+    }
+    else
+    {
+        dep = 5;
+    }
+    set_expfac();
     root = gen_tree(dep, 0, 0, neg_inf, pos_inf, '+');
     auto it = pri.back();
 
-    
-
     fout << it.x << " " << it.y << std::endl;
     fout.flush();
-    
 
     /*
     srand(time(NULL));
