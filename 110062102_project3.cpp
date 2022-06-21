@@ -48,9 +48,11 @@ int player;
 const int SIZE = 15;
 std::array<std::array<int, SIZE>, SIZE> board;
 std::array<std::array<char, SIZE>, SIZE> oxboard;
+std::array<std::array<int, SIZE>, SIZE> struct_combination;
 
 double max_beta = neg_inf;
 int dep;
+double fir_sec;
 
 node *root;
 
@@ -202,8 +204,8 @@ double count_struc(int x, int y, char str_sym)
         int ex_num, fac_num;
         if (consec_num >= 5)
         {
-            ex_num = 4;
-            fac_num = 30;
+            ex_num = 5;
+            fac_num = 5000;
         }
         else if (consec_num == 2)
         {
@@ -358,9 +360,37 @@ double count_struc(int x, int y, char str_sym)
             ex_num = expon[consec_num][dist1][dist2][(int)path_fill_1][(int)path_fill_2];
             fac_num = facto[consec_num][dist1][dist2][(int)path_fill_1][(int)path_fill_2];
         }
-
-        double multiplier = 1.0000000 + ((double)fac_num) / 100.000;
-        ret += (double)pow(ex_num, 1000.00000000) * multiplier;
+        if (ex_num == 3)
+        {
+            point cpy = e1;
+            int fl = 0;
+            while (cpy.x != e2.x || cpy.y != e2.y)
+            {
+                if (struct_combination[cpy.x][cpy.y] >= 1)
+                {
+                    fac_num = 50;
+                    fl = 1;
+                    break;
+                }
+                cpy.x += dir_op[i][0];
+                cpy.y += dir_op[i][1];
+            }
+            if (struct_combination[cpy.x][cpy.y] >= 1 && !fl) // tst
+            {
+                fac_num = 50;
+                fl = 1;
+            }
+            cpy = e1;
+            while (cpy.x != e2.x || cpy.y != e2.y)
+            {
+                struct_combination[cpy.x][cpy.y]++;
+                cpy.x += dir_op[i][0];
+                cpy.y += dir_op[i][1];
+            }
+            struct_combination[cpy.x][cpy.y]++;
+        }
+        double multiplier = 1.0000000 + (((double)fac_num) / 100.000);
+        ret += (double)pow(ex_num - 1, 1000.00000000) * multiplier;
     }
     return ret;
 }
@@ -368,6 +398,15 @@ double count_struc(int x, int y, char str_sym)
 double gen_val()
 {
     double ret = 0.00000000;
+
+    for (int i = 0; i < 15; i++)
+    {
+        for (int j = 0; j < 15; j++)
+        {
+            struct_combination[i][j] = 0;
+        }
+    }
+
     for (int i = 0; i < 15; i++)
     {
         for (int j = 0; j < 15; j++)
@@ -378,7 +417,7 @@ double gen_val()
             }
             else if (oxboard[i][j] == enemy_symbol)
             {
-                ret -= 5.0000000 * count_struc(i, j, enemy_symbol);
+                ret -= count_struc(i, j, enemy_symbol);
             }
         }
     }
@@ -393,8 +432,10 @@ node *gen_tree(int depth, int x, int y, double a, double b, char node_sym)
     _new.putting_loca.y = y;
     _new.alpha = a;
     _new.beta = b;
+    int dir_op[4][2] = {{1, 0}, {0, 1}, {1, -1}, {1, 1}};
     if (depth == 0)
     {
+
         if (node_sym == my_symbol)
         {
             _new.alpha = gen_val();
@@ -403,6 +444,7 @@ node *gen_tree(int depth, int x, int y, double a, double b, char node_sym)
         {
             _new.beta = gen_val();
         }
+
         if (dep == 1)
         {
             if (_new.beta > max_beta)
@@ -414,6 +456,73 @@ node *gen_tree(int depth, int x, int y, double a, double b, char node_sym)
         node *ret = &_new;
         return ret;
     }
+    for (int i = 0; i < 15; i++)
+    {
+        for (int j = 0; j < 15; j++)
+        {
+            if (oxboard[i][j] != '-')
+            {
+                point inp;
+                inp.x = i;
+                inp.y = j;
+                char tg = oxboard[i][j];
+                for (int k = 0; k < 4; k++)
+                {
+                    point e = inp;
+                    e.x -= dir_op[k][0];
+                    e.y -= dir_op[k][1];
+                    if (avail(e))
+                    {
+                        if (oxboard[e.x][e.y] == tg)
+                        {
+                            continue;
+                        }
+                    }
+                    e.x += dir_op[k][0];
+                    e.y += dir_op[k][1];
+                    int con_num = 0;
+                    while (avail(e))
+                    {
+                        if (oxboard[e.x][e.y] == tg)
+                        {
+                            con_num++;
+                        }
+                        else
+                        {
+                            break;
+                        }
+                        e.x += dir_op[k][0];
+                        e.y += dir_op[k][1];
+                    }
+
+                    if (con_num >= 5)
+                    {
+                        if (node_sym == my_symbol)
+                        {
+                            _new.alpha = gen_val();
+                        }
+                        if (node_sym == enemy_symbol)
+                        {
+                            _new.beta = gen_val();
+                        }
+
+                        if (depth == dep - 1)
+                        {
+                            if (_new.beta > max_beta)
+                            {
+                                pri.push(_new.putting_loca);
+                                max_beta = _new.beta;
+                            }
+                        }
+
+                        node *ret = &_new;
+                        return ret;
+                    }
+                }
+            }
+        }
+    }
+    
     if (node_sym == my_symbol)
     {
         _new.alpha = neg_inf;
@@ -429,6 +538,7 @@ node *gen_tree(int depth, int x, int y, double a, double b, char node_sym)
         _new.alpha = neg_inf;
         _new.beta = pos_inf;
     }
+    
     vector<point> choi;
     int po[8][2] = {{-1, -1}, {0, -1}, {1, -1}, {-1, 0}, {1, 0}, {-1, 1}, {0, 1}, {1, 1}};
     int px, py;
@@ -455,7 +565,7 @@ node *gen_tree(int depth, int x, int y, double a, double b, char node_sym)
             }
         }
     }
-
+    
     if (choi.empty())
     {
         choi.push_back({7, 7});
@@ -745,6 +855,7 @@ void read_board(std::ifstream &fin)
         my_symbol = 'x';
         enemy_symbol = 'o';
     }
+
     for (int i = 0; i < SIZE; i++)
     {
         for (int j = 0; j < SIZE; j++)
@@ -767,11 +878,7 @@ void read_board(std::ifstream &fin)
 
 void write_valid_spot(std::ofstream &fout)
 {
-    if (ones + twos > 34)
-    {
-        dep = 3;
-    }
-    else if (ones + twos > 16)
+    if (ones + twos > 12)
     {
         dep = 3;
     }
